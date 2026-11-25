@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OurFlix</title>
+  <meta name="theme-color" content="#e50914" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0b0b0f; color: #fff; font-family: system-ui, -apple-system, sans-serif; padding-bottom: 40px; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #14141c; border-bottom: 1px solid #262633; position: sticky; top: 0; z-index: 20; }
+    .logo { color: #e50914; font-weight: 900; font-size: 1.35rem; letter-spacing: 1px; }
+    .badge { font-size: 0.72rem; background: #16241b; color: #4ade80; border: 1px solid #4ade8044; padding: 3px 9px; border-radius: 20px; margin-left: 8px; }
+    button, .btn-link { background: #e50914; color: #fff; border: none; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.82rem; text-decoration: none; display: inline-block; text-align: center; touch-action: manipulation; }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    button.sec, .btn-link.sec { background: #252533; }
+    button.admin-on { background: #16a34a; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+    }
+    @media (min-width: 700px) {
+      .grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; padding: 16px; }
+    }
+
+    .card { background: #14141c; border-radius: 10px; overflow: hidden; border: 1px solid #262633; display: flex; flex-direction: column; }
+    .thumb { aspect-ratio: 16/9; background: #111; position: relative; cursor: pointer; overflow: hidden; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .play-icon { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,0.28); font-size: 1.4rem; pointer-events: none; }
+    .info { padding: 8px 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+    .info-text { min-width: 0; flex: 1; cursor: pointer; }
+    .info h4 { font-size: 0.84rem; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .info span { font-size: 0.7rem; color: #999; display: block; margin-top: 2px; }
+    .del-btn { padding: 4px 7px; font-size: 0.72rem; flex-shrink: 0; }
+
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; padding: 14px; z-index: 100; }
+    .modal.show { display: flex; }
+    .box { background: #161620; padding: 18px; border-radius: 14px; width: 100%; max-width: 430px; border: 1px solid #2c2c3d; max-height: 92vh; overflow-y: auto; }
+    .box h2 { font-size: 1.05rem; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    label { display: block; font-size: 0.78rem; color: #aaa; margin: 10px 0 4px; }
+    input { width: 100%; padding: 10px; background: #0b0b0f; border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 0.88rem; }
+    .hint { font-size: 0.72rem; color: #888; margin-top: 5px; line-height: 1.35; }
+    .progress { margin-top: 12px; font-size: 0.82rem; color: #4ade80; display: none; font-weight: 600; }
+    video.player, iframe.player { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; border: none; display: block; -webkit-touch-callout: none; user-select: none; }
+    .player-footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .player-footer span { font-size: 0.75rem; color: #999; }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;">
+      <span class="logo">OURFLIX</span>
+      <span class="badge">Public Feed</span>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button type="button" id="addBtn">+ Video</button>
+      <button type="button" id="adminBtn" class="sec">🔑</button>
+    </div>
+  </header>
+
+  <div id="grid" class="grid"></div>
+
+  <!-- Admin PIN Modal -->
+  <div id="pinModal" class="modal">
+    <div class="box">
+      <h2>Admin Access <button type="button" class="sec" id="closePin">✕</button></h2>
+      <p class="hint" style="margin-bottom:10px;">Anyone can watch videos without a code. Enter the Admin PIN to upload or delete videos.</p>
+      <label>Admin PIN</label>
+      <input id="inPin" type="password" placeholder="Enter Admin PIN" />
+      <button type="button" id="savePin" style="width:100%;margin-top:16px;">Unlock Admin</button>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div id="upModal" class="modal">
+    <div class="box">
+      <h2>Upload Video <button type="button" class="sec" id="closeUp">✕</button></h2>
+      <label>Video Title</label>
+      <input id="inTitle" placeholder="Enter title" />
+      <label>Select Video File (Unlimited size via Telegram)</label>
+      <input id="inFile" type="file" accept="video/*" />
+      <div class="hint">Files larger than 18 MB are automatically split into chunks and streamed smoothly with zero ads.</div>
+      <label>Or Paste Direct .mp4 / YouTube Link</label>
+      <input id="inUrl" type="url" placeholder="https://..." />
+      <div id="prog" class="progress">Preparing...</div>
+      <button type="button" id="pubBtn" style="width:100%;margin-top:16px;">Publish Video</button>
+    </div>
+  </div>
+
+  <!-- Player Modal -->
+  <div id="playModal" class="modal">
+    <div class="box" style="max-width:740px;padding:12px;">
+      <h2>
+        <span id="pTitle" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Playing</span>
+        <button type="button" class="sec" id="closePlay">✕</button>
+      </h2>
+      <div id="pArea" oncontextmenu="return false;"></div>
+      <div class="player-footer">
+        <span id="pStatus">Ad-Free Stream</span>
+        <a id="extLink" class="btn-link sec" href="#" target="_blank" rel="noopener" style="display:none;font-size:0.75rem;padding:6px 10px;">Open in YouTube ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    const FB_CFG = {
+      apiKey: "AIzaSyCSD5Mbknttt1i-iVmXUXw5TIUaqhylpWk",
+      authDomain: "ourflix-app.firebaseapp.com",
+      projectId: "ourflix-app",
+      storageBucket: "ourflix-app.firebasestorage.app",
+      messagingSenderId: "692970005597",
+      appId: "1:692970005597:web:7b0827dd824241ca04d9b4",
+      measurementId: "G-KEZP84GZ4D"
+    };
+
+    const WORKER_URL = "https://ourflix-v2.admin80085.workers.dev";
+    const ADMIN_PIN = "2222"; // Change to your secret PIN
+
+    const CHUNK_SIZE = 18 * 1024 * 1024; // 18MB chunks to stay safely under Telegram's 20MB limit
+    let db = null;
+    let videos = [];
+    let activeBlobUrl = null;
+
+    const $ = id => document.getElementById(id);
+    const isAdmin = () => localStorage.getItem("ourflix_admin_pin") === ADMIN_PIN;
+
+    function escHtml(str) {
+      return String(str || "").replace(/[&<>"']/g, m => ({
+        "&": "&", "<": "<", ">": ">", '"': """, "'": "'"
+      }[m]));
+    }
+
+    function updateAdminUI() {
+      const unlocked = isAdmin();
+      $("adminBtn").textContent = unlocked ? "🔓 Admin" : "🔑";
+      $("adminBtn").classList.toggle("admin-on", unlocked);
+      $("adminBtn").classList.toggle("sec", !unlocked);
+    }
+
+    function extractYouTubeId(url) {
+      if (!url) return null;
+      const m = url.trim().match(/(?:youtu\.be\/|(?:www\.|m\.|music\.)?youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/|shorts\/|live\/))([a-zA-Z0-9_-]{11})/);
+      return m ? m[1] : null;
+    }
+
+    function captureThumbnail(file) {
+      return new Promise(resolve => {
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        video.muted = true;
+        video.playsInline = true;
+        const objUrl = URL.createObjectURL(file);
+        const timer = setTimeout(() => { URL.revokeObjectURL(objUrl); resolve(""); }, 4000);
+
+        video.src = objUrl;
+        video.onloadeddata = () => {
+          try { video.currentTime = Math.min(1, (video.duration || 1) / 2); }
+          catch { clearTimeout(timer); URL.revokeObjectURL(objUrl); resolve(""); }
+        };
+        video.onseeked = () => {
+          clearTimeout(timer);
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = 320;
+            canvas.height = 180;
+            canvas.getContext("2d").drawImage(video, 0, 0, 320, 180);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.65);
+            URL.revokeObjectURL(objUrl);
+            resolve(dataUrl);
+          } catch {
+            URL.revokeObjectURL(objUrl);
+            resolve("");
+          }
+        };
+        video.onerror = () => { clearTimeout(timer); URL.revokeObjectURL(objUrl); resolve(""); };
+      });
+    }
+
+    async function uploadChunkToWorker(blob, fileName) {
+      const fd = new FormData();
+      fd.append("file", blob, fileName);
+      const res = await fetch(`${WORKER_URL}/upload`, { method: "POST", body: fd });
+      if (!res.ok) throw new Error(`Worker HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.ok || !data.file_id) throw new Error(data.error || "Upload failed");
+      return data.file_id;
+    }
+
+    async function uploadVideoToTelegram(file) {
+      $("prog").style.display = "block";
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      const fileIds = [];
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(file.size, start + CHUNK_SIZE);
+        const slice = file.slice(start, end, file.type || "video/mp4");
+
+        $("prog").textContent = totalChunks === 1
+          ? "Uploading to Telegram..."
+          : `Uploading part ${i + 1} of ${totalChunks}...`;
+
+        const chunkName = totalChunks === 1
+          ? (file.name || "video.mp4")
+          : `${file.name || "video"}.part${i + 1}`;
+
+        const fileId = await uploadChunkToWorker(slice, chunkName);
+        fileIds.push(fileId);
+      }
+
+      return fileIds;
+    }
+
+    function initApp() {
+      if (!firebase.apps.length) firebase.initializeApp(FB_CFG);
+      db = firebase.firestore();
+
+      db.collection("public_videos")
+        .orderBy("createdAt", "desc")
+        .onSnapshot(snap => {
+          videos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          render();
+        }, err => {
+          $("grid").innerHTML = `<p style='color:#f87171;padding:12px;grid-column:1/-1;'>Database error: ${escHtml(err.message)}</p>`;
+        });
+    }
+
+    function render() {
+      if (!videos.length) {
+        $("grid").innerHTML = "<p style='color:#888;padding:12px;grid-column:1/-1;'>No videos published yet.</p>";
+        return;
+      }
+      const admin = isAdmin();
+      $("grid").innerHTML = videos.map(v => {
+        const ytId = extractYouTubeId(v.url);
+        const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : (v.thumb || "");
+        const partsBadge = v.chunks && v.chunks.length > 1 ? ` • ${v.chunks.length} parts` : "";
+        return `
+          <div class="card" data-id="${escHtml(v.id)}">
+            <div class="thumb" data-action="play">
+              ${thumbUrl ? `<img src="${escHtml(thumbUrl)}" loading="lazy" onerror="this.style.display='none'">` : ""}
+              <div class="play-icon">▶</div>
+            </div>
+            <div class="info">
+              <div class="info-text" data-action="play">
+                <h4>${escHtml(v.title)}</h4>
+                <span>Ad-Free HD${partsBadge}</span>
+              </div>
+              ${admin ? `<button type="button" class="sec del-btn" data-action="delete">🗑</button>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    $("grid").addEventListener("click", async e => {
+      const card = e.target.closest(".card");
+      if (!card) return;
+      const id = card.getAttribute("data-id");
+      const actionEl = e.target.closest("[data-action]");
+      const action = actionEl ? actionEl.getAttribute("data-action") : "play";
+
+      if (action === "delete") {
+        e.stopPropagation();
+        if (!isAdmin()) return alert("Unlock Admin PIN first.");
+        if (!confirm("Delete this video?")) return;
+        await db.collection("public_videos").doc(id).delete();
+      } else {
+        openVideo(id);
+      }
+    });
+
+    async function openVideo(id) {
+      const v = videos.find(x => x.id === id);
+      if (!v) return;
+
+      if (activeBlobUrl) {
+        URL.revokeObjectURL(activeBlobUrl);
+        activeBlobUrl = null;
+      }
+
+      $("pTitle").textContent = v.title;
+      $("extLink").style.display = "none";
+      $("playModal").classList.add("show");
+
+      const ytId = extractYouTubeId(v.url);
+      if (ytId) {
+        $("pStatus").textContent = "YouTube Embed";
+        $("pArea").innerHTML = `<iframe class="player" src="https://www.youtube.com/embed/${ytId}?autoplay=1&playsinline=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+        $("extLink").href = `https://www.youtube.com/watch?v=${ytId}`;
+        $("extLink").style.display = "inline-block";
+        return;
+      }
+
+      if (v.chunks && v.chunks.length === 1) {
+        $("pStatus").textContent = "Streaming from Telegram (Ad-Free)";
+        const streamUrl = `${WORKER_URL}/file/${v.chunks[0]}`;
+        $("pArea").innerHTML = `<video class="player" src="${escHtml(streamUrl)}" controls controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false;" autoplay playsinline></video>`;
+        return;
+      }
+
+      if (v.chunks && v.chunks.length > 1) {
+        $("pArea").innerHTML = `<div style="aspect-ratio:16/9;background:#000;display:grid;place-items:center;border-radius:8px;color:#4ade80;font-size:0.85rem;padding:16px;text-align:center;" id="chunkLoader">Loading video parts (0/${v.chunks.length})...</div>`;
+        try {
+          const buffers = [];
+          for (let i = 0; i < v.chunks.length; i++) {
+            const loader = $("chunkLoader");
+            if (loader) loader.textContent = `Loading video part ${i + 1} of ${v.chunks.length}...`;
+            const res = await fetch(`${WORKER_URL}/file/${v.chunks[i]}`);
+            if (!res.ok) throw new Error(`Failed loading part ${i + 1}`);
+            buffers.push(await res.arrayBuffer());
+          }
+          const fullBlob = new Blob(buffers, { type: v.mimeType || "video/mp4" });
+          activeBlobUrl = URL.createObjectURL(fullBlob);
+          $("pStatus").textContent = `Ready (${v.chunks.length} parts assembled)`;
+          $("pArea").innerHTML = `<video class="player" src="${activeBlobUrl}" controls controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false;" autoplay playsinline></video>`;
+        } catch (err) {
+          $("pArea").innerHTML = `<div style="aspect-ratio:16/9;background:#000;display:grid;place-items:center;border-radius:8px;color:#f87171;font-size:0.85rem;padding:16px;text-align:center;">Playback error: ${escHtml(err.message)}</div>`;
+        }
+        return;
+      }
+
+      $("pStatus").textContent = "Direct Video Stream";
+      $("pArea").innerHTML = `<video class="player" src="${escHtml(v.url)}" controls controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false;" autoplay playsinline></video>`;
+    }
+
+    $("adminBtn").addEventListener("click", () => {
+      if (isAdmin()) {
+        if (confirm("Lock Admin mode?")) {
+          localStorage.removeItem("ourflix_admin_pin");
+          updateAdminUI();
+          render();
+        }
+        return;
+      }
+      $("inPin").value = "";
+      $("pinModal").classList.add("show");
+    });
+
+    $("savePin").addEventListener("click", () => {
+      const entered = $("inPin").value.trim();
+      if (entered !== ADMIN_PIN) return alert("Wrong Admin PIN.");
+      localStorage.setItem("ourflix_admin_pin", entered);
+      $("pinModal").classList.remove("show");
+      updateAdminUI();
+      render();
+    });
+
+    $("addBtn").addEventListener("click", () => {
+      if (!isAdmin()) {
+        $("inPin").value = "";
+        return $("pinModal").classList.add("show");
+      }
+      $("inTitle").value = "";
+      $("inFile").value = "";
+      $("inUrl").value = "";
+      $("prog").style.display = "none";
+      $("pubBtn").disabled = false;
+      $("upModal").classList.add("show");
+    });
+
+    $("closePin").addEventListener("click", () => $("pinModal").classList.remove("show"));
+    $("closeUp").addEventListener("click", () => $("upModal").classList.remove("show"));
+    $("closePlay").addEventListener("click", () => {
+      $("pArea").innerHTML = "";
+      if (activeBlobUrl) {
+        URL.revokeObjectURL(activeBlobUrl);
+        activeBlobUrl = null;
+      }
+      $("playModal").classList.remove("show");
+    });
+
+    ["pinModal", "upModal", "playModal"].forEach(modalId => {
+      $(modalId).addEventListener("click", e => {
+        if (e.target === $(modalId)) {
+          if (modalId === "playModal") {
+            $("pArea").innerHTML = "";
+            if (activeBlobUrl) {
+              URL.revokeObjectURL(activeBlobUrl);
+              activeBlobUrl = null;
+            }
+          }
+          $(modalId).classList.remove("show");
+        }
+      });
+    });
+
+    $("pubBtn").addEventListener("click", async () => {
+      if (!isAdmin()) return alert("Admin PIN required.");
+      const title = $("inTitle").value.trim();
+      const file = $("inFile").files[0];
+      const url = $("inUrl").value.trim();
+      if (!title || (!file && !url)) return alert("Enter a title and choose a video file or URL.");
+
+      $("pubBtn").disabled = true;
+      try {
+        let thumb = "";
+        let chunks = [];
+        let mimeType = "video/mp4";
+
+        if (file) {
+          thumb = await captureThumbnail(file);
+          mimeType = file.type || "video/mp4";
+          chunks = await uploadVideoToTelegram(file);
+        } else {
+          const ytId = extractYouTubeId(url);
+          if (ytId) thumb = `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+        }
+
+        $("prog").style.display = "block";
+        $("prog").textContent = "Saving to public feed...";
+
+        await db.collection("public_videos").add({
+          title,
+          url: file ? "" : url,
+          chunks,
+          mimeType,
+          thumb,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        $("upModal").classList.remove("show");
+      } catch (err) {
+        alert("Upload Error: " + err.message);
+      } finally {
+        $("pubBtn").disabled = false;
+      }
+    });
+
+    updateAdminUI();
+    initApp();
+  </script>
+</body>
+</html>
