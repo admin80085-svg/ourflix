@@ -2,51 +2,370 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>OurFlix</title>
   <meta name="theme-color" content="#e50914" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0b0b0f; color: #fff; font-family: system-ui, -apple-system, sans-serif; padding-bottom: 40px; }
-    header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #14141c; border-bottom: 1px solid #262633; position: sticky; top: 0; z-index: 20; }
-    .logo { color: #e50914; font-weight: 900; font-size: 1.35rem; letter-spacing: 1px; }
-    .badge { font-size: 0.72rem; background: #16241b; color: #4ade80; border: 1px solid #4ade8044; padding: 3px 9px; border-radius: 20px; margin-left: 8px; }
-    button, .btn-link { background: #e50914; color: #fff; border: none; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.82rem; text-decoration: none; display: inline-block; text-align: center; touch-action: manipulation; }
-    button:disabled { opacity: 0.55; cursor: not-allowed; }
-    button.sec, .btn-link.sec { background: #252533; }
-    button.admin-on { background: #16a34a; }
+    body { 
+      background: radial-gradient(circle at 50% 0%, #1c0e15 0%, #08080c 100%); 
+      color: #fff; 
+      font-family: system-ui, -apple-system, sans-serif; 
+      padding-bottom: 50px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Cinematic Neon BG Elements */
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 10%; right: 10%; height: 300px;
+      background: radial-gradient(circle, rgba(229, 9, 20, 0.12) 0%, rgba(229, 9, 20, 0) 70%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 14px 20px; 
+      background: rgba(20, 20, 28, 0.7); 
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04); 
+      position: sticky; 
+      top: 0; 
+      z-index: 20; 
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    }
+    .logo { 
+      color: #e50914; 
+      font-weight: 900; 
+      font-size: 1.5rem; 
+      letter-spacing: 2px; 
+      text-shadow: 0 0 15px rgba(229, 9, 20, 0.5);
+    }
+    .badge { 
+      font-size: 0.68rem; 
+      font-weight: 700;
+      background: rgba(74, 222, 128, 0.08); 
+      color: #4ade80; 
+      border: 1px solid rgba(74, 222, 128, 0.25); 
+      padding: 4px 10px; 
+      border-radius: 20px; 
+      margin-left: 10px; 
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.1);
+    }
+
+    button, .btn-link { 
+      background: linear-gradient(135deg, #e50914 0%, #b80710 100%); 
+      color: #fff; 
+      border: none; 
+      padding: 9px 16px; 
+      border-radius: 10px; 
+      font-weight: 800; 
+      cursor: pointer; 
+      font-size: 0.82rem; 
+      text-decoration: none; 
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.35);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      touch-action: manipulation; 
+    }
+    button:active, .btn-link:active {
+      transform: scale(0.95);
+      box-shadow: 0 2px 8px rgba(229, 9, 20, 0.2);
+    }
+    button:disabled { 
+      opacity: 0.4; 
+      cursor: not-allowed; 
+      box-shadow: none;
+    }
+    button.sec, .btn-link.sec { 
+      background: rgba(255, 255, 255, 0.06); 
+      color: #eaeaea;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: none;
+    }
+    button.sec:active, .btn-link.sec:active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    button.admin-on { 
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      padding: 12px;
+      gap: 14px;
+      padding: 16px;
+      position: relative;
+      z-index: 2;
     }
     @media (min-width: 700px) {
-      .grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; padding: 16px; }
+      .grid { 
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); 
+        gap: 20px; 
+        padding: 24px; 
+      }
     }
 
-    .card { background: #14141c; border-radius: 10px; overflow: hidden; border: 1px solid #262633; display: flex; flex-direction: column; }
-    .thumb { aspect-ratio: 16/9; background: #111; position: relative; cursor: pointer; overflow: hidden; }
-    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
-    .play-icon { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,0.28); font-size: 1.4rem; pointer-events: none; }
-    .info { padding: 8px 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
-    .info-text { min-width: 0; flex: 1; cursor: pointer; }
-    .info h4 { font-size: 0.84rem; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .info span { font-size: 0.7rem; color: #999; display: block; margin-top: 2px; }
-    .del-btn { padding: 4px 7px; font-size: 0.72rem; flex-shrink: 0; }
+    .card { 
+      background: rgba(30, 30, 45, 0.4); 
+      border-radius: 16px; 
+      overflow: hidden; 
+      border: 1px solid rgba(255, 255, 255, 0.05); 
+      display: flex; 
+      flex-direction: column; 
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s;
+    }
+    .card:hover, .card:active {
+      transform: translateY(-4px);
+      border-color: rgba(229, 9, 20, 0.35);
+      box-shadow: 0 15px 40px rgba(229, 9, 20, 0.15);
+    }
+    
+    .thumb { 
+      aspect-ratio: 16/9; 
+      background: #000; 
+      position: relative; 
+      cursor: pointer; 
+      overflow: hidden; 
+    }
+    .thumb img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      display: block; 
+      pointer-events: none; 
+      transition: transform 0.5s ease;
+    }
+    .card:hover .thumb img {
+      transform: scale(1.05);
+    }
+    .play-overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 100%);
+      transition: opacity 0.2s;
+    }
+    .play-icon-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(229, 9, 20, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.1rem;
+      padding-left: 3px;
+      box-shadow: 0 0 15px rgba(229, 9, 20, 0.6);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .card:hover .play-icon-circle {
+      transform: scale(1.15);
+      background: #e50914;
+    }
 
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; padding: 14px; z-index: 100; }
+    .info { 
+      padding: 12px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: flex-start; 
+      gap: 8px; 
+      background: linear-gradient(180deg, rgba(20,20,30,0) 0%, rgba(20,20,30,0.4) 100%);
+    }
+    .info-text { min-width: 0; flex: 1; cursor: pointer; }
+    .info h4 { 
+      font-size: 0.92rem; 
+      font-weight: 700;
+      line-height: 1.3; 
+      color: #fff;
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+      letter-spacing: 0.2px;
+    }
+    .info span { 
+      font-size: 0.72rem; 
+      color: #8a8e9e; 
+      display: block; 
+      margin-top: 4px; 
+      font-weight: 500;
+    }
+    .del-btn { 
+      padding: 6px 8px; 
+      font-size: 0.78rem; 
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      flex-shrink: 0; 
+      box-shadow: none;
+    }
+    .del-btn:active {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* Modals & Frosted Glass */
+    .modal { 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(5, 5, 8, 0.88); 
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: none; 
+      align-items: center; 
+      justify-content: center; 
+      padding: 16px; 
+      z-index: 100; 
+      animation: fadeIn 0.25s ease-out;
+    }
     .modal.show { display: flex; }
-    .box { background: #161620; padding: 18px; border-radius: 14px; width: 100%; max-width: 430px; border: 1px solid #2c2c3d; max-height: 92vh; overflow-y: auto; }
-    .box h2 { font-size: 1.05rem; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-    label { display: block; font-size: 0.78rem; color: #aaa; margin: 10px 0 4px; }
-    input { width: 100%; padding: 10px; background: #0b0b0f; border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 0.88rem; }
-    .hint { font-size: 0.72rem; color: #888; margin-top: 5px; line-height: 1.35; }
-    .progress { margin-top: 12px; font-size: 0.82rem; color: #4ade80; display: none; font-weight: 600; }
-    video.player, iframe.player { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; border: none; display: block; -webkit-touch-callout: none; user-select: none; }
-    .player-footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .player-footer span { font-size: 0.75rem; color: #999; }
+    
+    .box { 
+      background: rgba(22, 22, 32, 0.85); 
+      padding: 24px; 
+      border-radius: 24px; 
+      width: 100%; 
+      max-width: 440px; 
+      border: 1px solid rgba(255, 255, 255, 0.08); 
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      max-height: 90vh; 
+      overflow-y: auto; 
+      position: relative;
+      animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .box h2 { 
+      font-size: 1.2rem; 
+      font-weight: 800;
+      margin-bottom: 16px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      gap: 8px; 
+      letter-spacing: 0.5px;
+    }
+    .close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.2s;
+    }
+    .close-btn:active {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    label { 
+      display: block; 
+      font-size: 0.78rem; 
+      font-weight: 700;
+      color: #9e9eaf; 
+      margin: 14px 0 6px; 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    input { 
+      width: 100%; 
+      padding: 12px 14px; 
+      background: rgba(0, 0, 0, 0.35); 
+      border: 1px solid rgba(255, 255, 255, 0.08); 
+      color: #fff; 
+      border-radius: 12px; 
+      font-size: 0.9rem; 
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: rgba(229, 9, 20, 0.5);
+      background: rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 10px rgba(229, 9, 20, 0.15);
+    }
+    input::placeholder {
+      color: #555566;
+    }
+    
+    .hint { 
+      font-size: 0.74rem; 
+      color: #7b7b8f; 
+      margin-top: 6px; 
+      line-height: 1.4; 
+    }
+    .progress { 
+      margin-top: 14px; 
+      font-size: 0.85rem; 
+      color: #4ade80; 
+      display: none; 
+      font-weight: 700; 
+      text-align: center;
+      padding: 10px;
+      background: rgba(74, 222, 128, 0.08);
+      border-radius: 10px;
+      border: 1px solid rgba(74, 222, 128, 0.15);
+    }
+    
+    /* Elegant Custom Video Player Layout */
+    video.player, iframe.player { 
+      width: 100%; 
+      aspect-ratio: 16/9; 
+      background: #000; 
+      border-radius: 16px; 
+      border: 1px solid rgba(255, 255, 255, 0.05); 
+      display: block; 
+      -webkit-touch-callout: none; 
+      user-select: none; 
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    }
+    .player-footer { 
+      margin-top: 16px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      gap: 12px; 
+      flex-wrap: wrap; 
+    }
+    .player-footer span { 
+      font-size: 0.8rem; 
+      color: #9e9eaf; 
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot-badge {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #e50914;
+      box-shadow: 0 0 8px #e50914;
+    }
+
+    /* Keyframes for smooth animations */
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -55,9 +374,9 @@
       <span class="logo">OURFLIX</span>
       <span class="badge">Public Feed</span>
     </div>
-    <div style="display:flex;gap:6px;">
-      <button type="button" id="addBtn">+ Video</button>
-      <button type="button" id="adminBtn" class="sec">🔑</button>
+    <div style="display:flex;gap:8px;">
+      <button type="button" id="addBtn"><span>✨</span> + Upload Video</button>
+      <button type="button" id="adminBtn" class="sec">🔑 Admin Key</button>
     </div>
   </header>
 
@@ -66,41 +385,41 @@
   <!-- Admin PIN Modal -->
   <div id="pinModal" class="modal">
     <div class="box">
-      <h2>Admin Access <button type="button" class="sec" id="closePin">✕</button></h2>
-      <p class="hint" style="margin-bottom:10px;">Anyone can watch videos without a code. Enter the Admin PIN to upload or delete videos.</p>
+      <h2>Admin Access <div class="close-btn" id="closePin">✕</div></h2>
+      <p class="hint" style="margin-bottom:12px;">Anyone can watch videos without a code. Enter the Admin PIN to upload or delete videos.</p>
       <label>Admin PIN</label>
-      <input id="inPin" type="password" placeholder="Enter Admin PIN" />
-      <button type="button" id="savePin" style="width:100%;margin-top:16px;">Unlock Admin</button>
+      <input id="inPin" type="password" placeholder="••••" />
+      <button type="button" id="savePin" style="width:100%;margin-top:20px;justify-content:center;">Unlock Admin</button>
     </div>
   </div>
 
   <!-- Upload Modal -->
   <div id="upModal" class="modal">
     <div class="box">
-      <h2>Upload Video <button type="button" class="sec" id="closeUp">✕</button></h2>
+      <h2>Upload Video <div class="close-btn" id="closeUp">✕</div></h2>
       <label>Video Title</label>
-      <input id="inTitle" placeholder="Enter title" />
+      <input id="inTitle" placeholder="The Dark Knight (2008)" />
       <label>Select Video File (Unlimited size via Telegram)</label>
-      <input id="inFile" type="file" accept="video/*" />
+      <input id="inFile" type="file" accept="video/*" style="padding:10px 14px; font-size:0.8rem;" />
       <div class="hint">Files larger than 18 MB are automatically split into chunks and streamed smoothly with zero ads.</div>
       <label>Or Paste Direct .mp4 / YouTube Link</label>
       <input id="inUrl" type="url" placeholder="https://..." />
       <div id="prog" class="progress">Preparing...</div>
-      <button type="button" id="pubBtn" style="width:100%;margin-top:16px;">Publish Video</button>
+      <button type="button" id="pubBtn" style="width:100%;margin-top:20px;justify-content:center;">Publish Video</button>
     </div>
   </div>
 
   <!-- Player Modal -->
   <div id="playModal" class="modal">
-    <div class="box" style="max-width:740px;padding:12px;">
-      <h2>
-        <span id="pTitle" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Playing</span>
-        <button type="button" class="sec" id="closePlay">✕</button>
+    <div class="box" style="max-width:740px;padding:16px;background:rgba(16, 16, 24, 0.95);">
+      <h2 style="margin-bottom:14px;">
+        <span id="pTitle" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:900;">Playing</span>
+        <div class="close-btn" id="closePlay">✕</div>
       </h2>
       <div id="pArea" oncontextmenu="return false;"></div>
       <div class="player-footer">
-        <span id="pStatus">Ad-Free Stream</span>
-        <a id="extLink" class="btn-link sec" href="#" target="_blank" rel="noopener" style="display:none;font-size:0.75rem;padding:6px 10px;">Open in YouTube ↗</a>
+        <span><span class="dot-badge"></span><span id="pStatus">Ad-Free Stream</span></span>
+        <a id="extLink" class="btn-link sec" href="#" target="_blank" rel="noopener" style="font-size:0.75rem;padding:6px 12px;">Open in YouTube ↗</a>
       </div>
     </div>
   </div>
@@ -118,10 +437,10 @@
       measurementId: "G-KEZP84GZ4D"
     };
 
-    const WORKER_URL = "https://ourflix-v2.admin80085.workers.dev";
-    const ADMIN_PIN = "2222"; // Change to your secret PIN
+    const WORKER_URL = "https://ourflix-v2.admin80085.workers.dev";[cite: 8]
+    const ADMIN_PIN = "1234"; 
 
-    const CHUNK_SIZE = 18 * 1024 * 1024; // 18MB chunks to stay safely under Telegram's 20MB limit
+    const CHUNK_SIZE = 18 * 1024 * 1024; 
     let db = null;
     let videos = [];
     let activeBlobUrl = null;
@@ -137,7 +456,7 @@
 
     function updateAdminUI() {
       const unlocked = isAdmin();
-      $("adminBtn").textContent = unlocked ? "🔓 Admin" : "🔑";
+      $("adminBtn").textContent = unlocked ? "🔓 Admin" : "🔑 Admin Key";
       $("adminBtn").classList.toggle("admin-on", unlocked);
       $("adminBtn").classList.toggle("sec", !unlocked);
     }
@@ -202,8 +521,8 @@
         const slice = file.slice(start, end, file.type || "video/mp4");
 
         $("prog").textContent = totalChunks === 1
-          ? "Uploading to Telegram..."
-          : `Uploading part ${i + 1} of ${totalChunks}...`;
+          ? "🚀 Uploading to Telegram..."
+          : `📤 Uploading part ${i + 1} of ${totalChunks}...`;
 
         const chunkName = totalChunks === 1
           ? (file.name || "video.mp4")
@@ -226,32 +545,34 @@
           videos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
           render();
         }, err => {
-          $("grid").innerHTML = `<p style='color:#f87171;padding:12px;grid-column:1/-1;'>Database error: ${escHtml(err.message)}</p>`;
+          $("grid").innerHTML = `<p style='color:#ef4444;padding:12px;grid-column:1/-1;text-align:center;'>Database error: ${escHtml(err.message)}</p>`;
         });
     }
 
     function render() {
       if (!videos.length) {
-        $("grid").innerHTML = "<p style='color:#888;padding:12px;grid-column:1/-1;'>No videos published yet.</p>";
+        $("grid").innerHTML = "<p style='color:#5e627e;padding:40px 12px;grid-column:1/-1;text-align:center;font-weight:600;'>No videos published yet. Tap Upload Video to begin!</p>";
         return;
       }
       const admin = isAdmin();
       $("grid").innerHTML = videos.map(v => {
         const ytId = extractYouTubeId(v.url);
         const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : (v.thumb || "");
-        const partsBadge = v.chunks && v.chunks.length > 1 ? ` • ${v.chunks.length} parts` : "";
+        const partsBadge = v.chunks && v.chunks.length > 1 ? ` • ${v.chunks.length} parts` : " • HD";
         return `
           <div class="card" data-id="${escHtml(v.id)}">
             <div class="thumb" data-action="play">
-              ${thumbUrl ? `<img src="${escHtml(thumbUrl)}" loading="lazy" onerror="this.style.display='none'">` : ""}
-              <div class="play-icon">▶</div>
+              ${thumbUrl ? `<img src="${escHtml(thumbUrl)}" loading="lazy" onerror="this.style.display='none'">` : `<div style="background:#13131c;width:100%;height:100%;"></div>`}
+              <div class="play-overlay">
+                <div class="play-icon-circle">▶</div>
+              </div>
             </div>
             <div class="info">
               <div class="info-text" data-action="play">
                 <h4>${escHtml(v.title)}</h4>
-                <span>Ad-Free HD${partsBadge}</span>
+                <span>Ad-Free${partsBadge}</span>
               </div>
-              ${admin ? `<button type="button" class="sec del-btn" data-action="delete">🗑</button>` : ""}
+              ${admin ? `<button type="button" class="del-btn" data-action="delete">🗑</button>` : ""}
             </div>
           </div>
         `;
@@ -293,34 +614,34 @@
         $("pStatus").textContent = "YouTube Embed";
         $("pArea").innerHTML = `<iframe class="player" src="https://www.youtube.com/embed/${ytId}?autoplay=1&playsinline=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
         $("extLink").href = `https://www.youtube.com/watch?v=${ytId}`;
-        $("extLink").style.display = "inline-block";
+        $("extLink").style.display = "inline-flex";
         return;
       }
 
       if (v.chunks && v.chunks.length === 1) {
-        $("pStatus").textContent = "Streaming from Telegram (Ad-Free)";
+        $("pStatus").textContent = "Streaming from Telegram";
         const streamUrl = `${WORKER_URL}/file/${v.chunks[0]}`;
         $("pArea").innerHTML = `<video class="player" src="${escHtml(streamUrl)}" controls controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false;" autoplay playsinline></video>`;
         return;
       }
 
       if (v.chunks && v.chunks.length > 1) {
-        $("pArea").innerHTML = `<div style="aspect-ratio:16/9;background:#000;display:grid;place-items:center;border-radius:8px;color:#4ade80;font-size:0.85rem;padding:16px;text-align:center;" id="chunkLoader">Loading video parts (0/${v.chunks.length})...</div>`;
+        $("pArea").innerHTML = `<div style="aspect-ratio:16/9;background:#050508;display:grid;place-items:center;border-radius:16px;border:1px solid rgba(255,255,255,0.05);color:#4ade80;font-size:0.85rem;font-weight:700;padding:16px;text-align:center;" id="chunkLoader">Loading movie parts (0/${v.chunks.length})...</div>`;
         try {
           const buffers = [];
           for (let i = 0; i < v.chunks.length; i++) {
             const loader = $("chunkLoader");
-            if (loader) loader.textContent = `Loading video part ${i + 1} of ${v.chunks.length}...`;
+            if (loader) loader.textContent = `⏳ Assembling theater data (Part ${i + 1} of ${v.chunks.length})...`;
             const res = await fetch(`${WORKER_URL}/file/${v.chunks[i]}`);
             if (!res.ok) throw new Error(`Failed loading part ${i + 1}`);
             buffers.push(await res.arrayBuffer());
           }
           const fullBlob = new Blob(buffers, { type: v.mimeType || "video/mp4" });
           activeBlobUrl = URL.createObjectURL(fullBlob);
-          $("pStatus").textContent = `Ready (${v.chunks.length} parts assembled)`;
+          $("pStatus").textContent = `Ready (${v.chunks.length} Parts Assembled)`;
           $("pArea").innerHTML = `<video class="player" src="${activeBlobUrl}" controls controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false;" autoplay playsinline></video>`;
         } catch (err) {
-          $("pArea").innerHTML = `<div style="aspect-ratio:16/9;background:#000;display:grid;place-items:center;border-radius:8px;color:#f87171;font-size:0.85rem;padding:16px;text-align:center;">Playback error: ${escHtml(err.message)}</div>`;
+          $("pArea").innerHTML = `<div style="aspect-ratio:16/9;background:#050508;display:grid;place-items:center;border-radius:16px;border:1px solid rgba(239, 68, 68, 0.1);color:#ef4444;font-size:0.85rem;padding:16px;text-align:center;">🔴 Loading failed: ${escHtml(err.message)}</div>`;
         }
         return;
       }
@@ -413,7 +734,7 @@
         }
 
         $("prog").style.display = "block";
-        $("prog").textContent = "Saving to public feed...";
+        $("prog").textContent = "✨ Saving to public feed...";
 
         await db.collection("public_videos").add({
           title,
